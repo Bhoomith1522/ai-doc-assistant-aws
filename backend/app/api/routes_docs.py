@@ -1,8 +1,13 @@
 from fastapi import APIRouter, UploadFile, File
 import os
 from app.services.pdf_extractor import extract_text_from_pdf
+from app.services.text_splitter import split_text
+from app.services.embedding import embed_texts
+from app.services.vector_store import VectorStore
 
 router = APIRouter(tags=["documents"])
+
+vector_store = VectorStore(dim=384)
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -23,5 +28,6 @@ async def upload_document(file: UploadFile = File(...)):
         "filename": file.filename,
         "text_length": len(extracted_text),
         "preview": extracted_text[:500],
-    }
+ }
+
 

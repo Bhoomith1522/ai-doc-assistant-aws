@@ -2,6 +2,7 @@ from fastapi import FastAPI,Request
 from pydantic import BaseModel
 from app.api.routes_chat import router as chat_router
 from app.api.routes_docs import router as docs_router
+from app.api.routes_debug import router as debug_router
 from app.core.logging import setup_logging
 
 import time
@@ -60,4 +61,6 @@ def health():
 
 app.include_router(chat_router)
 app.include_router(docs_router)
+app.include_router(debug_router)
+
 

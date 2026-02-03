@@ -1,10 +1,16 @@
 from fastapi import APIRouter
-from app.models.schemas import ChatRequest, ChatResponse
+from app.services.retriever import retrieve_chunks
 
-router = APIRouter(tags=["chat"])
+router = APIRouter()
 
+@router.post("/chat")
+def chat(query: str):
+    chunks = retrieve_chunks(query)
 
-@router.post("/chat", response_model=ChatResponse)
-def chat(payload: ChatRequest):
-    reply_text = f"Hello {payload.user_id}, you said: {payload.message}"
-    return ChatResponse(reply=reply_text)
+    context = "\n".join(chunks)
+
+    return {
+        "query": query,
+        "context_used": context
+    }
+

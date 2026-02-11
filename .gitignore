@@ -1,5 +1,20 @@
-backend/venv/
-venv/
+# env
+.env
+
+# python
 __pycache__/
 *.pyc
-.env
+
+# venv
+venv/
+
+# uploads and data
+backend/uploads/
+backend/vector_data/
+
+# tests artifacts
+backend/tests/__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db

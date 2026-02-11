@@ -1,13 +1,12 @@
 from fastapi import APIRouter, UploadFile, File
 import os
+
 from app.services.pdf_extractor import extract_text_from_pdf
 from app.services.text_splitter import split_text
 from app.services.embedding import embed_texts
-from app.services.vector_store import VectorStore
+from app.services.vector_store import vector_store
 
 router = APIRouter(tags=["documents"])
-
-vector_store = VectorStore(dim=384)
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -19,15 +18,23 @@ async def upload_document(file: UploadFile = File(...)):
 
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
+
     extracted_text = ""
 
     if file.filename.lower().endswith(".pdf"):
         extracted_text = extract_text_from_pdf(file_path)
 
+    chunks = split_text(extracted_text)
+    embeddings = embed_texts(chunks)
+    metadata = [{"source": file.filename} for _ in chunks]
+    vector_store.add(embeddings, chunks, metadata)
+
+    
+
     return {
         "filename": file.filename,
-        "text_length": len(extracted_text),
-        "preview": extracted_text[:500],
- }
+        "chunks": len(chunks),
+        "stored": True
+    }
 
 

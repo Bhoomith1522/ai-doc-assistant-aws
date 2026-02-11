@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from app.api.routes_chat import router as chat_router
 from app.api.routes_docs import router as docs_router
 from app.api.routes_debug import router as debug_router
+from fastapi.responses import JSONResponse
 from app.core.logging import setup_logging
 
 import time
@@ -58,9 +59,30 @@ class HealthResponse(BaseModel):
 def health():
     return {"status": "ok", "service": "ai-doc-assistant"}
 
+from uuid import uuid4
+from fastapi import Request
+
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request.state.request_id = str(uuid4())
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request.state.request_id
+    return response
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal Server Error",
+            "request_id": getattr(request.state, "request_id", None),
+        },
+    )
 
 app.include_router(chat_router)
 app.include_router(docs_router)
 app.include_router(debug_router)
+
+
 
 
